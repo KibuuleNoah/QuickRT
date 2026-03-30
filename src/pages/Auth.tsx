@@ -1,7 +1,14 @@
-import React, { useState, ChangeEvent, useId } from "react";
+import React, { useState, ChangeEvent, useId, type FC } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import ThemeToggleBtn from "@/components/ThemeToggleBtn";
-import { IconDeviceMobile, IconMail } from "@tabler/icons-react";
+import {
+  IconCheck,
+  IconCircleCheck,
+  IconConfetti,
+  IconDeviceMobile,
+  IconMail,
+} from "@tabler/icons-react";
+import AppConfig from "@/lib/appConfig";
 
 type Step = "entry" | "otp" | "profile";
 type Mode = "email" | "phone";
@@ -19,12 +26,15 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   error?: string;
 }
 
-export const Input = ({
+export const Input: FC<InputProps> = ({
   label,
   error,
+  onChange,
+  value,
+  placeholder,
   className = "",
   ...props
-}: InputProps) => {
+}) => {
   const id = useId(); // Generates a unique ID for accessibility
 
   return (
@@ -36,6 +46,9 @@ export const Input = ({
       )}
       <input
         id={id}
+        onChange={onChange}
+        value={value}
+        placeholder={placeholder}
         className={`
           h-[3rem] w-full px-3 py-2 rounded-sm rounded-tl-xl rounded-br-xl border bg-white outline-brand-600 
           text-slate-900 placeholder:text-slate-400
@@ -154,16 +167,11 @@ function StepEntry({ onNext }: { onNext: () => void }) {
       <FieldLabel>
         {mode === "email" ? "Email address" : "Phone number"}
       </FieldLabel>
-      {/*<motion.input
-        key={mode}
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
+      <Input
         placeholder={mode === "email" ? "you@example.com" : "+256 700 000 000"}
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        className="auth-input"
-      />*/}
-      <Input />
+      />
       <p className="text-xs text-slate-700 mt-2 mb-6 leading-relaxed">
         {mode === "email"
           ? "We'll send a one-time code to this email."
@@ -226,7 +234,15 @@ function StepOTP({
             value={digit}
             onChange={(e) => handleKey(e, i)}
             onFocus={(e) => e.target.select()}
-            className={["otp-cell", digit ? "otp-filled" : ""].join(" ")}
+            className={`
+
+    w-8 h-10 flex items-center justify-center leading-none box-border
+    
+    flex-1 aspect-square max-w-[52px] rounded-xl border text-center text-[20px] font-bold outline-hidden transition-all duration-200 font-['Syne']
+    border-slate-300 bg-surface text-brand-500
+    focus:border-brand-500 focus:ring-3 focus:ring-brand-200
+    ${digit ? "border-brand-500 text-brand-500 bg-brand-500/6" : ""}
+              `}
           />
         ))}
       </div>
@@ -263,31 +279,28 @@ function StepProfile({
       <Heading>Set up your profile</Heading>
       <Sub>Choose a username and tell us your name.</Sub>
 
-      <FieldLabel>Full name</FieldLabel>
-      <input
-        className="auth-input mb-4"
-        placeholder="e.g. Noah Kiggundu"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
-
-      <FieldLabel>Username</FieldLabel>
-      <div className="relative flex items-center">
-        <span className="absolute left-3.5 text-primary text-[15px] font-semibold pointer-events-none select-none z-10">
-          @
-        </span>
-        <input
-          className="auth-input pl-8"
-          placeholder="your_handle"
-          value={username}
-          onChange={(e) =>
-            setUsername(e.target.value.toLowerCase().replace(/\s/g, "_"))
-          }
+      <div className="space-2">
+        <FieldLabel>Full name</FieldLabel>
+        <Input
+          placeholder="e.g. Noah Kiggundu"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
         />
+
+        <FieldLabel>Username</FieldLabel>
+        <div className="relative flex items-center">
+          <Input
+            placeholder="your_handle"
+            value={username}
+            onChange={(e) =>
+              setUsername(e.target.value.toLowerCase().replace(/\s/g, "_"))
+            }
+          />
+        </div>
+        <p className="text-xs text-text-secondary/60 mt-2 mb-6 leading-relaxed">
+          This is how other users will see you on WinHub.
+        </p>
       </div>
-      <p className="text-xs text-text-secondary/60 mt-2 mb-6 leading-relaxed">
-        This is how other users will see you on WinHub.
-      </p>
 
       <BtnRow>
         <GhostBtn onClick={onBack}>← Back</GhostBtn>
@@ -295,7 +308,7 @@ function StepProfile({
           onClick={onNext}
           disabled={!username.trim() || !name.trim()}
         >
-          Let's go 🎉
+          Let's go
         </PrimaryBtn>
       </BtnRow>
     </StepCard>
@@ -312,9 +325,11 @@ function StepSuccess() {
         animate={{ scale: 1, rotate: 0 }}
         transition={{ type: "spring", stiffness: 200, damping: 18 }}
       >
-        🏆
+        <IconCircleCheck size={60} className="text-green-500" />
       </motion.div>
-      <Heading>You're in!</Heading>
+      <Heading>
+        <span className="text-green-500">You're in!</span>
+      </Heading>
       <Sub>Welcome to WinHub. Start scratching and winning.</Sub>
       <PrimaryBtn onClick={() => {}}>Go to Dashboard →</PrimaryBtn>
     </StepCard>
@@ -378,11 +393,21 @@ function PrimaryBtn({
 }) {
   return (
     <motion.button
-      onClick={onClick}
+      onClick={!disabled ? onClick : undefined}
       disabled={disabled}
-      whileTap={{ scale: 0.97 }}
-      whileHover={{ scale: disabled ? 1 : 1.015 }}
-      className="flex-1 w-full mt-1 py-3.5 px-5 rounded-xl border-none bg-gradient-to-br from-primary to-primary-dark text-text-dark font-bold text-[14px] tracking-wide cursor-pointer transition-opacity duration-200 disabled:opacity-30 disabled:cursor-not-allowed"
+      whileTap={!disabled ? { scale: 0.98 } : {}}
+      whileHover={!disabled ? { scale: 1.01 } : {}}
+      className={`
+        flex-1 w-full mt-1 py-3.5 px-5 rounded-xl text-[14px] font-bold tracking-wide
+        
+        bg-brand-500 text-white shadow-sm
+        
+        hover:bg-brand-700 active:bg-brand-800
+        transition-all duration-200 cursor-pointer border-none
+        
+        disabled:bg-slate-400 disabled:text-slate-600 
+        disabled:shadow-none disabled:cursor-not-allowed
+      `}
     >
       {children}
     </motion.button>
@@ -410,9 +435,9 @@ function BtnRow({ children }: { children: React.ReactNode }) {
   return <div className="flex gap-2.5 mt-1">{children}</div>;
 }
 
-/* ── Root ────────────────────────────────────────────── */
+/* ── ROOT ────────────────────────────────────────────── */
 export default function AuthFlow() {
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(1);
   const next = () => setStep((s) => Math.min(s + 1, 3));
   const back = () => setStep((s) => Math.max(s - 1, 0));
 
@@ -425,83 +450,19 @@ export default function AuthFlow() {
 
   return (
     <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap');
-
-        /* Only scoped styles that Tailwind can't handle cleanly inline */
-        .auth-input {
-          width: 100%;
-          border-radius: 0.75rem;
-          padding: 13px 16px;
-          font-size: 15px;
-          font-family: 'DM Sans', sans-serif;
-          outline: none;
-          transition: border-color 0.2s, box-shadow 0.2s;
-          /* dark (default) */
-          background: var(--color-surface);
-          border: 1px solid var(--color-border);
-          color: var(--color-text-primary);
-        }
-        .auth-input::placeholder { color: #4b5563; }
-        .auth-input:focus {
-          border-color: var(--color-focus);
-          box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-focus) 13%, transparent);
-        }
-        @media (prefers-color-scheme: light) {
-          .auth-input {
-            background: #f9fafb;
-            border-color: #e5e7eb;
-            color: var(--color-text-dark);
-          }
-          .auth-input::placeholder { color: #9ca3af; }
-        }
-
-        .otp-cell {
-          flex: 1;
-          aspect-ratio: 1;
-          max-width: 52px;
-          border-radius: 0.75rem;
-          border: 1px solid var(--color-border);
-          background: var(--color-surface);
-          text-align: center;
-          font-size: 20px;
-          font-weight: 700;
-          color: var(--color-text-primary);
-          outline: none;
-          transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
-          font-family: 'Syne', sans-serif;
-        }
-        .otp-cell:focus {
-          border-color: var(--color-focus);
-          box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-focus) 13%, transparent);
-        }
-        .otp-filled {
-          border-color: var(--color-primary);
-          color: var(--color-primary);
-          background: color-mix(in srgb, var(--color-primary) 6%, transparent);
-        }
-        @media (prefers-color-scheme: light) {
-          .otp-cell {
-            background: #f9fafb;
-            border-color: #e5e7eb;
-            color: var(--color-text-dark);
-          }
-        }
-      `}</style>
-
       <div
         className="min-h-screen flex items-center justify-center relative overflow-hidden
-        bg-brand-100 transition-colors duration-300"
+        bg-brand-50 transition-colors duration-300"
       >
         {/* Brand-tinted atmosphere — faint, not colourful */}
-        <div className="pointer-events-none absolute -top-40 -left-40 w-[520px] h-[520px] rounded-full bg-brand-100 blur-[130px]" />
-        <div className="pointer-events-none absolute -bottom-32 -right-32 w-[420px] h-[420px] rounded-full bg-brand-100 blur-[110px]" />
-        <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full bg-brand-100 blur-[180px]" />
+        <div className="pointer-events-none absolute -top-40 -left-40 w-[520px] h-[520px] rounded-full bg-brand-50 blur-[130px]" />
+        <div className="pointer-events-none absolute -bottom-32 -right-32 w-[420px] h-[420px] rounded-full bg-brand-50 blur-[110px]" />
+        <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full bg-brand-50 blur-[180px]" />
 
         {/* Card */}
         <div
           className="relative z-10 w-full max-w-[420px] mx-4
-          bg-brand-100 border border-brand-400 rounded-2xl
+          bg-brand-50 border border-brand-400 rounded-2xl
           px-8 pt-8 pb-10
           shadow-[0_20px_60px_rgba(0,0,0,0.12)]
           shadow-brand-300
@@ -556,7 +517,7 @@ export default function AuthFlow() {
 
         {/* Footer */}
         <p className="absolute bottom-5 text-[11px] text-text-secondary/30 tracking-wide">
-          © {new Date().getFullYear()} WinHub · All rights reserved
+          © {new Date().getFullYear()} {AppConfig.appName} · All rights reserved
         </p>
       </div>
     </>

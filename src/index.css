@@ -3,6 +3,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
+  --color-brand-50: oklch(99.1% 0.006 227.4);
   --color-brand-100: oklch(97.25% 0.017 227.4);
   --color-brand-200: oklch(84.64% 0.052 227.4);
   --color-brand-300: oklch(77.11% 0.077 227.4);
@@ -53,6 +54,7 @@
       --color-brand-300: oklch(43.81% 0.075 227.4);
       --color-brand-200: oklch(33.41% 0.055 227.4);
       --color-brand-100: oklch(22.09% 0.033 227.4);
+      --color-brand-50: oklch(22.09% 0.033 227.4);
 
       --color-slate-900: oklch(90.54% 0.003 218.5); /* #dee0e1 */
       --color-slate-800: oklch(81.04% 0.006 218.5); /* #bdc2c3 */
