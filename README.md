@@ -1,8 +1,8 @@
-# MoxieInvoice
+# QuickT
 
 
 # Tech Stack 
 
 - React + TS 
 - Tailwind + Shadcn (for ui)
-- Appwrite (for backend)
+- Go-Gin (for backend)
