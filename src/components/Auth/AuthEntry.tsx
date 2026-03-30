@@ -7,14 +7,18 @@ import {
   AuthStepCard,
   AuthSub,
   type AuthMode,
+  type AuthWith,
 } from "@/components/Auth/shared/shared";
 import { motion } from "motion/react";
 import { IconDeviceMobile, IconMail } from "@tabler/icons-react";
+import { useAuth } from "@/hooks/DashboardLayoutI/useAuth";
+import { ValidateIdentifier } from "@/lib/helpers";
 
 /* ── Auth Entry ─ (Step 1) ─────────────────────────────── */
 const AuthEntry: FC<{ onNext: () => void }> = ({ onNext }) => {
   const [mode, setMode] = useState<AuthMode>("email");
-  const [value, setValue] = useState("");
+  const { identifier, setIdentifier, authWith, setAuthWith } = useAuth();
+  const [identifierErr, setIdentifierErr] = useState("");
 
   return (
     <AuthStepCard>
@@ -25,12 +29,13 @@ const AuthEntry: FC<{ onNext: () => void }> = ({ onNext }) => {
 
       <div className="flex bg-surface rounded-xl p-1 mb-5 gap-1 relative overflow-hidden">
         {/* The Sliding Pill */}
-        {(["email", "phone"] as AuthMode[]).map((m) => (
+        {(["email", "mobile"] as AuthMode[]).map((m) => (
           <button
             key={m}
             onClick={() => {
               setMode(m);
-              setValue("");
+              setIdentifier("");
+              setAuthWith(m as AuthWith);
             }}
             className={[
               "relative flex-1 py-2 flex items-center justify-center gap-2 rounded-lg text-[13px] font-medium cursor-pointer transition-colors duration-300 z-10",
@@ -65,8 +70,18 @@ const AuthEntry: FC<{ onNext: () => void }> = ({ onNext }) => {
       </AuthFieldLabel>
       <AuthInput
         placeholder={mode === "email" ? "you@example.com" : "+256 700 000 000"}
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
+        value={identifier}
+        onChange={(e) => setIdentifier(e.target.value)}
+        error={identifierErr}
+        onBlur={(e) => {
+          if (!ValidateIdentifier(e.target.value, authWith)) {
+            setIdentifierErr(
+              `Invalid ${authWith == "mobile" ? "mobile number" : "email address"} format, check again!`,
+            );
+          } else {
+            setIdentifierErr("");
+          }
+        }}
       />
       <p className="text-xs text-slate-700 mt-2 mb-6 leading-relaxed">
         {mode === "email"
@@ -74,7 +89,10 @@ const AuthEntry: FC<{ onNext: () => void }> = ({ onNext }) => {
           : "We'll send a one-time code via SMS."}
       </p>
 
-      <AuthPrimaryBtn onClick={onNext} disabled={!value.trim()}>
+      <AuthPrimaryBtn
+        onClick={onNext}
+        disabled={!identifier.trim() || identifierErr.length > 1}
+      >
         Continue →
       </AuthPrimaryBtn>
     </AuthStepCard>

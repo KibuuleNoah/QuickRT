@@ -1,4 +1,4 @@
-import { AuthWith } from "./types";
+import type { AuthStep } from "@/components/Auth/shared/shared";
 
 export const GetRemainingCooldown = (expiresAt: string) => {
   const expiryTime = new Date(expiresAt).getTime();
@@ -82,14 +82,14 @@ export const ObjectKeysToSnakeCase = <T extends Record<string, any>>(
 
 export const ValidateIdentifier = (
   input: string,
-  authWith: AuthWith,
+  authWith: "mobile" | "email",
 ): boolean => {
   input = input.trim();
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   // Validates basic international formats (e.g., +1234567890 or 1234567890)
   const phoneRegex = /^\+?[1-9]\d{1,14}$/;
 
-  if (authWith === AuthWith.MOBILE) {
+  if (authWith === "mobile") {
     // Remove common formatting characters before testing phone regex
     const cleanPhone = input.replace(/[\s\-\(\)]/g, "");
     return phoneRegex.test(cleanPhone);

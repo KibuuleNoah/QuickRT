@@ -1,16 +1,9 @@
 import React, { useId, type FC } from "react";
 import { motion } from "motion/react";
 
+export type AuthWith = "mobile" | "email";
 export type AuthStep = "entry" | "otp" | "profile";
 export type AuthMode = "email" | "phone";
-
-export const AUTHSTEPS: Step[] = ["entry", "otp", "profile"];
-
-export const authStepMeta = [
-  { label: "Get Started", hint: "Enter your email or phone to begin" },
-  { label: "Verify", hint: "We sent you a 6-digit code" },
-  { label: "Your Profile", hint: "Almost there — just a few details" },
-];
 
 interface AuthInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -58,54 +51,6 @@ export const AuthInput: FC<AuthInputProps> = ({
     </div>
   );
 };
-
-/* ── Auth Step Indicator ──────────────────────────────────── */
-export const AuthStepIndicator = ({ current }: { current: number }) => (
-  <div className="flex items-center">
-    {STEPS.map((_, i) => (
-      <div key={i} className="flex items-center flex-1 last:flex-none">
-        <motion.div
-          className={[
-            "w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-300 relative",
-            i === current
-              ? "border-brand-900 ring-4 ring-brand-500 after:absolute after:inset-0 after:rounded-full after:ring-4 after:ring-brand-500 after:animate-ripple"
-              : i < current
-                ? "border-brand-700"
-                : "border-slate-500 bg-surface",
-          ].join(" ")}
-          animate={{ scale: i === current ? 1.2 : 1 }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
-        >
-          {i < current && (
-            <motion.svg
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              width="10"
-              height="10"
-              viewBox="0 0 10 10"
-            >
-              <polyline
-                points="1.5,5 4,7.5 8.5,2.5"
-                stroke="var(--color-brand-700)"
-                strokeWidth="1.8"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </motion.svg>
-          )}
-        </motion.div>
-        {i < STEPS.length - 1 && (
-          <motion.div
-            className="flex-1 h-px mx-1 bg-brand-700 origin-left"
-            animate={{ scaleX: i < current ? 1 : 0 }}
-            transition={{ duration: 0.4, ease: "easeInOut" }}
-          />
-        )}
-      </div>
-    ))}
-  </div>
-);
 
 export const AuthStepCard: FC<{
   children: React.ReactNode;

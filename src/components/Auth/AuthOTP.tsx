@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent, type FC } from "react";
+import { useEffect, useState, type ChangeEvent, type FC } from "react";
 import {
   AuthBtnRow,
   AuthFieldLabel,
@@ -9,6 +9,8 @@ import {
   AuthSub,
 } from "@/components/Auth/shared/shared";
 import { motion } from "motion/react";
+import { useAuth } from "@/hooks/DashboardLayoutI/useAuth";
+import { GetRemainingCooldown } from "@/lib/helpers";
 
 /* ── Step 2: OTP Entry ───────────────────────────────── */
 const AuthOTP: FC<{
@@ -17,6 +19,36 @@ const AuthOTP: FC<{
 }> = ({ onNext, onBack }) => {
   const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
 
+  const { otpExpiryDate, setOtpExpiryDate } = useAuth();
+
+  useEffect(() => {
+    setOtpExpiryDate(new Date(Date.now() + 12000).toISOString());
+  }, []);
+
+  const [timeLeft, setTimeLeft] = useState(GetRemainingCooldown(otpExpiryDate));
+
+  useEffect(() => {
+    // Initial check
+    const initial = GetRemainingCooldown(otpExpiryDate);
+    setTimeLeft(initial);
+
+    // If already expired, don't start timer
+    if (initial.isExpired) return;
+
+    // Update every second
+    const timer = setInterval(() => {
+      const remaining = GetRemainingCooldown(otpExpiryDate);
+      setTimeLeft(remaining);
+
+      if (remaining.isExpired) {
+        clearInterval(timer);
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [otpExpiryDate]);
+
+  // Restart if lastRequestDate changes
   const handleKey = (e: ChangeEvent<HTMLInputElement>, i: number) => {
     const val = e.target.value.replace(/\D/, "");
     if (
@@ -37,6 +69,8 @@ const AuthOTP: FC<{
   };
 
   const filled = otp.every((d) => d !== "");
+
+  const handleResend = async () => {};
 
   return (
     <AuthStepCard>
@@ -68,12 +102,22 @@ const AuthOTP: FC<{
           />
         ))}
       </div>
-      <p className="text-xs text-slate-700 font-bold mt-2 mb-6 leading-relaxed">
-        Didn't get it?{" "}
-        <button className="text-blue-500 text-xs underline underline-offset-2 bg-transparent border-none cursor-pointer p-0">
-          Resend code
-        </button>
-      </p>
+      <div className="flex justify-between">
+        <p className="text-xs text-slate-700 font-bold mt-2 mb-6 leading-relaxed">
+          Didn't get it?{" "}
+          <button
+            disabled={!timeLeft.isExpired}
+            className="text-blue-500 text-xs underline underline-offset-2 bg-transparent border-none cursor-pointer p-0 disabled:text-slate-400"
+          >
+            Resend code
+          </button>
+        </p>
+        <p>
+          <span className="font-bold text-orange-400">
+            <span className="text-xs">New Code In</span> {timeLeft.formatted}
+          </span>
+        </p>
+      </div>
 
       <AuthBtnRow>
         <AuthGhostBtn onClick={onBack}>← Back</AuthGhostBtn>
@@ -84,5 +128,40 @@ const AuthOTP: FC<{
     </AuthStepCard>
   );
 };
+// <div className="flex flex-col items-center gap-3">
+//             <button
+//               type="button"
+//               onClick={handleResend}
+//               disabled={timeLeft.isExpired}
+//               className="text-[10px] font-black uppercase tracking-widest transition-colors"
+//               style={{
+//                 color: !timeLeft.isExpired
+//                   ? "var(--color-resend-disabled)"
+//                   : "var(--color-text-primary)",
+//                 cursor: !timeLeft.isExpired ? "not-allowed" : "pointer",
+//               }}
+//             >
+//               Didn't receive the code?{" "}
+//               {!timeLeft.isExpired ? (
+//                 <span style={{ color: "var(--color-resend-disabled)" }}>
+//                   Request again in {timeLeft.formatted}
+//                 </span>
+//               ) : (
+//                 <span style={{ color: "var(--color-resend-active)" }}>
+//                   Resend.
+//                 </span>
+//               )}
+//             </button>
+//
+//             {!timeLeft.isExpired && (
+//               <p
+//                 className="text-[11px] text-center max-w-xs"
+//                 style={{ color: "var(--color-resend-hint)" }}
+//               >
+//                 For security reasons, you can request a new code once the timer
+//                 finishes. Please also check your spam folder.
+//               </p>
+//             )}
+//           </div>
 
 export default AuthOTP;

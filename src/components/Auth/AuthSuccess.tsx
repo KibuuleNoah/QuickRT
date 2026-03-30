@@ -1,8 +1,17 @@
 /* ── Success ─────────────────────────────────────────── */
 
+import { IconCircleCheck } from "@tabler/icons-react";
+import {
+  AuthHeading,
+  AuthPrimaryBtn,
+  AuthStepCard,
+  AuthSub,
+} from "./shared/shared";
+import { motion } from "motion/react";
+
 const AuthSuccess = () => {
   return (
-    <StepCard center>
+    <AuthStepCard center>
       <motion.div
         className="text-5xl mb-2"
         initial={{ scale: 0, rotate: -30 }}
@@ -11,12 +20,12 @@ const AuthSuccess = () => {
       >
         <IconCircleCheck size={60} className="text-green-500" />
       </motion.div>
-      <Heading>
+      <AuthHeading>
         <span className="text-green-500">You're in!</span>
-      </Heading>
-      <Sub>Welcome to WinHub. Start scratching and winning.</Sub>
-      <PrimaryBtn onClick={() => {}}>Go to Dashboard →</PrimaryBtn>
-    </StepCard>
+      </AuthHeading>
+      <AuthSub>Welcome to WinHub. Start scratching and winning.</AuthSub>
+      <AuthPrimaryBtn onClick={() => {}}>Go to Dashboard →</AuthPrimaryBtn>
+    </AuthStepCard>
   );
 };
 
